@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>tiaradwptr</title>
+    <link>/</link>
+    <description>Recent content on tiaradwptr</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>© Copyright notice</copyright>
+    <lastBuildDate>Sun, 08 Dec 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Hi.</title>
+      <link>/about/</link>
+      <pubDate>Sun, 08 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/about/</guid>
+      <description>You seems to have discovered my site The time I&amp;rsquo;m writing this, the website is not planned to be publicly announced. This is my first trial in publishing a personal website. I am currently teaching data science and building stuff at Algoritma. I enjoy fiddling with data and codes (a bit of coding with a lot of praying and googling). The handsome avatar in the top left you are looking right now is Bolin, my cat, please shower him with lots of love.</description>
+    </item>
+    
+    <item>
+      <title>Interesting Title Not Found</title>
+      <link>/first-post/</link>
+      <pubDate>Sun, 08 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/first-post/</guid>
+      <description>Yup, this post has no purpose than to just be here.</description>
+    </item>
+    
+  </channel>
+</rss>
