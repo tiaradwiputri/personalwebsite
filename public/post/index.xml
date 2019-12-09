@@ -2,23 +2,23 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on tiaradwptr</title>
-    <link>/post/</link>
+    <link>https://tiaradwptr.netlify.com/post/</link>
     <description>Recent content in Posts on tiaradwptr</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© Copyright notice</copyright>
     <lastBuildDate>Sun, 08 Dec 2019 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://tiaradwptr.netlify.com/post/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Interesting Title Not Found</title>
-      <link>/interesting-title-not-found/</link>
+      <link>https://tiaradwptr.netlify.com/interesting-title-not-found/</link>
       <pubDate>Sun, 08 Dec 2019 00:00:00 +0000</pubDate>
       
-      <guid>/interesting-title-not-found/</guid>
-      <description>Yup, this post has no purpose than to just be here.</description>
+      <guid>https://tiaradwptr.netlify.com/interesting-title-not-found/</guid>
+      <description>Yup, this post has no other purpose than to just sit here.</description>
     </item>
     
   </channel>

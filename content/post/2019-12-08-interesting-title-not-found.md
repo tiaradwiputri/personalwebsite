@@ -1,11 +1,13 @@
 ---
 title: Interesting Title Not Found
-author: Tiara Dwiputri
-description: Not necessary, but seems to be a good idea to have something posted before publishing the site
+description: I thought it might be a good idea to have an existing post before publishing the site
+author: ~
 date: '2019-12-08'
 slug: interesting-title-not-found
+categories: []
 tags: ['scribble']
 disqus: false
+type: "post"
 ---
 
-Yup, this post has no purpose than to just be here.
+Yup, this post has no other purpose than to just sit here.

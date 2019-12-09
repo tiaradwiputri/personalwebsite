@@ -7,9 +7,28 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© Copyright notice</copyright>
+    <lastBuildDate>Sun, 08 Dec 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://tiaradwptr.netlify.com/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Hi.</title>
+      <link>https://tiaradwptr.netlify.com/about/</link>
+      <pubDate>Sun, 08 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://tiaradwptr.netlify.com/about/</guid>
+      <description>You seems to have discovered my site The time I&amp;rsquo;m writing this, the website is not planned to be publicly announced. This is my first trial in publishing a personal website. I am currently teaching data science and building stuff at Algoritma. I enjoy fiddling with data and codes (a bit of coding with a lot of praying and googling). The handsome avatar in the top left you are looking right now is Bolin, my cat, please shower him with lots of love.</description>
+    </item>
+    
+    <item>
+      <title>Interesting Title Not Found</title>
+      <link>https://tiaradwptr.netlify.com/interesting-title-not-found/</link>
+      <pubDate>Sun, 08 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://tiaradwptr.netlify.com/interesting-title-not-found/</guid>
+      <description>Yup, this post has no other purpose than to just sit here.</description>
+    </item>
     
   </channel>
 </rss>

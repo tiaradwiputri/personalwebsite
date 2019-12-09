@@ -44,7 +44,7 @@ paginate = 5
     # Custom CSS added to default styles. Files added to `static` folder is copied as it is to
     # root by Hugo. For example if you have custom CSS file under `static/css/custom.css` then
     # you can specify custom css path as `css/custom.css`.
-    customCSS = "css/custom.css"
+    #customCSS = "css/custom.css"
     # Custom CSS added to dark mode style.
     #customDarkCSS = "css/custom-dark.css"
 
@@ -62,17 +62,17 @@ weight = 1
 
 [[menu.main]]
 name = "All posts"
-url = "/post"
+url = "/post/"
 weight = 2
 
 [[menu.main]]
 name = "About"
-url = "/about"
+url = "/about/"
 weight = 3
 
 [[menu.main]]
 name = "Tags"
-url = "/tags"
+url = "/tags/"
 weight = 4
 
 [[params.social]]
