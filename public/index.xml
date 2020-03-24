@@ -2,31 +2,40 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>tiaradwptr</title>
-    <link>https://tiaradwptr.netlify.com/</link>
+    <link>/</link>
     <description>Recent content on tiaradwptr</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© Copyright notice</copyright>
-    <lastBuildDate>Sun, 08 Dec 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 24 Mar 2020 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="https://tiaradwptr.netlify.com/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>COVID-19 Transmission</title>
+      <link>/covid-19-transmission/</link>
+      <pubDate>Tue, 24 Mar 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/covid-19-transmission/</guid>
+      <description>PrefaceThis content is created for educational purposes, shout out to louislugas from GitHub for the content inspiration. Check out his awesome web application for COVID-19 transmission network analysis. This article will focus on breaking down building blocks in creating network analysis taking on the most recent COVID-19 pandemic outbreak in Indonesia. There are exponentially rising amount of suspects and patients on this matter and a strategic approach in containing the spread will be required in decision makings in this country.</description>
+    </item>
+    
+    <item>
       <title>Hi.</title>
-      <link>https://tiaradwptr.netlify.com/about/</link>
+      <link>/about/</link>
       <pubDate>Sun, 08 Dec 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://tiaradwptr.netlify.com/about/</guid>
+      <guid>/about/</guid>
       <description>You seems to have discovered my site The time I&amp;rsquo;m writing this, the website is not planned to be publicly announced. This is my first trial in publishing a personal website. I am currently teaching data science and building stuff at Algoritma. I enjoy fiddling with data and codes (a bit of coding with a lot of praying and googling). The handsome avatar in the top left you are looking right now is Bolin, my cat, please shower him with lots of love.</description>
     </item>
     
     <item>
       <title>Interesting Title Not Found</title>
-      <link>https://tiaradwptr.netlify.com/interesting-title-not-found/</link>
+      <link>/interesting-title-not-found/</link>
       <pubDate>Sun, 08 Dec 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://tiaradwptr.netlify.com/interesting-title-not-found/</guid>
+      <guid>/interesting-title-not-found/</guid>
       <description>Yup, this post has no other purpose than to just sit here.</description>
     </item>
     

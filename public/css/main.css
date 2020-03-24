@@ -412,3 +412,22 @@ ul {
     }
 }
 
+
+pre, textarea {
+    overflow: auto;
+    margin: 1em;
+    background: #333;
+    color: #fff;
+    padding: 0.5em;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 2em;
+    border-color: grey;
+}
+
+legend, td, th {
+    padding: 0.2em;
+    border-bottom: 1px solid #ddd;
+}

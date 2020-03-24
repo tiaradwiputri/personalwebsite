@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on tiaradwptr</title>
-    <link>/post/</link>
-    <description>Recent content in Posts on tiaradwptr</description>
+    <title>dataplay on tiaradwptr</title>
+    <link>/tags/dataplay/</link>
+    <description>Recent content in dataplay on tiaradwptr</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© Copyright notice</copyright>
     <lastBuildDate>Tue, 24 Mar 2020 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="/tags/dataplay/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -19,15 +19,6 @@
       
       <guid>/covid-19-transmission/</guid>
       <description>PrefaceThis content is created for educational purposes, shout out to louislugas from GitHub for the content inspiration. Check out his awesome web application for COVID-19 transmission network analysis. This article will focus on breaking down building blocks in creating network analysis taking on the most recent COVID-19 pandemic outbreak in Indonesia. There are exponentially rising amount of suspects and patients on this matter and a strategic approach in containing the spread will be required in decision makings in this country.</description>
-    </item>
-    
-    <item>
-      <title>Interesting Title Not Found</title>
-      <link>/interesting-title-not-found/</link>
-      <pubDate>Sun, 08 Dec 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/interesting-title-not-found/</guid>
-      <description>Yup, this post has no other purpose than to just sit here.</description>
     </item>
     
   </channel>

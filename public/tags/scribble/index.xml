@@ -2,22 +2,22 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>scribble on tiaradwptr</title>
-    <link>https://tiaradwptr.netlify.com/tags/scribble/</link>
+    <link>/tags/scribble/</link>
     <description>Recent content in scribble on tiaradwptr</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© Copyright notice</copyright>
     <lastBuildDate>Sun, 08 Dec 2019 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="https://tiaradwptr.netlify.com/tags/scribble/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="/tags/scribble/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Interesting Title Not Found</title>
-      <link>https://tiaradwptr.netlify.com/interesting-title-not-found/</link>
+      <link>/interesting-title-not-found/</link>
       <pubDate>Sun, 08 Dec 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://tiaradwptr.netlify.com/interesting-title-not-found/</guid>
+      <guid>/interesting-title-not-found/</guid>
       <description>Yup, this post has no other purpose than to just sit here.</description>
     </item>
     

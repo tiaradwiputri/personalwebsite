@@ -1,0 +1,255 @@
+---
+title: COVID-19 Transmission
+description: Virus outbreak transmission analysis based on graph visualization, using visNetwork package.
+author: ''
+date: '2020-03-24'
+slug: covid-19-transmission
+categories: []
+tags:
+  - portofolio
+  - dataplay
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_TIME", "Ind")
+library(RJSONIO)
+library(tibble)
+library(dplyr)
+library(stringr)
+library(tidyr)
+library(lubridate)
+library(visNetwork)
+```
+
+# Preface
+
+This content is created for educational purposes, shout out to [louislugas](https://github.com/louislugas/) from GitHub for the content inspiration. Check out [his awesome web application](https://louislugas.github.io/covid_19_cluster/index.html) for COVID-19 transmission network analysis. This article will focus on breaking down building blocks in creating network analysis taking on the most recent COVID-19 pandemic outbreak in Indonesia. There are exponentially rising amount of suspects and patients on this matter and a strategic approach in containing the spread will be required in decision makings in this country. This article, will not tackle the policy-maker perspective, instead introducing the potentially useful tools for some parties.
+
+# Graph Theory
+
+The study of graph are introduced as mathematical structure used to model a certain relationships between entities. Graph is applicable in many areas and expertises, but a simple graph contain 2 main components:
+
+* Nodes (or Vertices): Is the entity represented in a graph, in our case, the node will be COVID-19 patients recorded so far
+* Edges: The edges, describe the relation between nodes
+
+To acquire the data, I will be using JSON provided by [louislugas](https://github.com/louislugas/), used also in his application:
+ 
+```{r}
+json_cases <- fromJSON("https://raw.githubusercontent.com/louislugas/louislugas.github.io/master/covid_19_cluster/json/kasus-corona-indonesia.json")
+cases_df <- as.data.frame(json_cases$nodes) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  glimpse()
+```
+
+> Note: JSON is an unstructure data types, while data frame is a set of variables (columns) with a given amount of observations (rows). Sometimes, JSON is not easily convertable to a tabular data type like data frame. Make sure you understand JSON's data structure before making a table out of it.
+
+## The Nodes
+
+Well, since most of them has an intuitive column name, we wouldn't need a lot of exploration in understanding the data. The `penularan` column, however, seems to be a free-writing column that should be further inspected:
+
+```{r}
+set.seed(10)
+cases_df %>% 
+  select(penularan) %>% 
+  sample_n(10)
+```
+
+The `Tidak Diketahui` value seems to be really common, and might not be too useful to analyze if it holds no connection. So we'll filter this out:
+
+```{r}
+known_cases <- cases_df %>% 
+  filter(penularan != "Tidak diketahui") %>% 
+  glimpse()
+```
+
+The cases is now down to 36 cases that might (or might not be) connected to each other. Let's take a look at the `penularan` column once again:
+
+```{r}
+set.seed(10)
+known_cases %>% 
+  select(penularan) %>% 
+  sample_n(10)
+```
+
+A bit of common pattern we're seeing here:
+
+* Relation with other case seems to be indetified using the `#<a number>` value
+* The word `Sehabis` is a strong indicator of an imported case
+
+Now to create a case - when logic, we'll be using `dplyr`'s `case_when()` to map each of the string pattern using regex:
+
+```{r}
+relation_df <- known_cases %>% 
+  mutate(
+    relation = case_when(
+      str_detect(penularan, "[0-9]+") ~ str_extract(penularan, "#[0-9]+"),
+      str_detect(penularan, "Sehabis") ~ "Imported case",
+    )
+  ) %>% 
+  select(id, provinsi, umur, gender, pengumuman, penularan, status, wn, rs, relation)
+```
+
+Now glimpsing if there's anything missed out from the given patterns:
+
+```{r}
+relation_df %>% 
+  filter(is.na(relation)) %>% 
+  select(id, penularan)
+```
+
+So 3 more uncommon pattern:
+
+* The Diamond Princess incident seems to be used as an identifier as well
+* `WNA` indicates a foreigner which will be assumed to be the same as `Imported Case`
+* A very long description that might (or might not have) explains the transmission, we'll ignore that for now
+
+So rewriting our `relation_df` codes and adding a few informative information extraction from other columns:
+
+```{r}
+nodes <- known_cases %>% 
+  mutate(
+    relation = case_when(
+      str_detect(penularan, "[0-9]+") ~ str_extract(penularan, "#[0-9]+"),
+      str_detect(penularan, "Sehabis") ~ "Imported case",
+      str_detect(penularan, "Diamond Princess") ~ "Diamond Princess",
+      str_detect(penularan, "WNA") ~ "Imported case"
+    ),
+    # coercing to date type for date calculation
+    pengumuman = dmy(pengumuman),
+    time_since = difftime(Sys.Date(), pengumuman, units = "d")
+  ) %>% 
+  select(id, pengumuman, provinsi, umur, status, wn, rs, relation, time_since, penularan)
+```
+
+Now there here goes our nodes data frame:
+
+```{r echo=FALSE}
+knitr::kable(nodes %>% head())
+```
+
+## The Edges
+
+To acquire each case's connection, we'll be simply extracting the information from our node since it has come with a handy identifier using `relation` and `id` columns. Starting from our `relation` column, we'll be extracting only with those that have relation between cases, means those that has the `#<a number>` value in it:
+
+```{r}
+edges <- relation_df %>% 
+  select(relation, id) %>% 
+  mutate(
+    relation = str_extract(relation, "[0-9]+"),
+    relation = as.numeric(relation)
+  ) %>% 
+  drop_na() %>% 
+  rename(
+    from = relation,
+    to = id
+  )
+```
+
+And here goes our edges data frame:
+
+```{r echo=FALSE}
+knitr::kable(edges %>% head())
+```
+
+Now before going any further, the first case seems to be showing a weird connection to the 24th case, if the timeline is correct, the first case shouldn't be infected from the latter cases. Now let's inspect the original dataset:
+
+```{r}
+known_cases %>% 
+  filter(id == 1) %>% 
+  select(penularan)
+```
+
+The `penularan` column describes how it is related to `kasus #24`, things to note is, it took me some time to understand this anomaly, which I found to be really useful to just Google the things I find off. Then I came accross the [following article](https://www.cnnindonesia.com/internasional/20200229110333-106-479291/tiga-kasus-baru-corona-di-malaysia-satu-pernah-ke-indonesia) that explains that the `kasus #24` is indicating to Malayasia's case instead of Indonesia's. Means, we can annull the first edges before going to visualization:
+
+```{r}
+edges <- edges[-1,]
+```
+
+# Using `visNetwork`
+
+There are indeed load of packages for graph visualization. For this exercise we'll be using `visNetwork` and please note that I always encourage people to aim for understanding the working principles and ideas - not the idiosyncrasies. For the `visNetwork` to work, we'll be needing some components:
+
+* `nodes` data frame that consist of:
+  * Id
+  * The color
+  * Size
+  * Shape
+  * Label
+  * Hover text
+* `edges` data frame consisting of `to` and `from` that correspond to `id` column in `nodes`
+
+Some things I want to configure based on the given set up is:
+
+* The status of the patient will be color-coded
+
+```{r}
+levels(nodes$status)
+```
+
+* The shape will be diamond if it is an imported case and square if not
+* The size will be based on days passed since announcement
+* The hover text will show: age, hospital location, and details
+
+Since we'll be needing some value mapping, we'll split it into 2 parts: data preparation and visualization
+
+## Data Mapping
+
+`visNetwork` uses column names to map each value to its designated component. Simply put:
+
+* Use `id` for node's ids
+* Use `label` for node's names
+* Use `shape` for node's shapes
+* Use `color` for node's colors
+* Use `title` for node's hover text
+* Use `value` for node's size
+
+
+```{r}
+cleaned_nodes <- nodes %>% 
+  mutate(
+    label = paste0("Case #", id),
+    color = case_when(
+      status == "Sembuh" ~ "green",
+      status == "Dalam Perawatan" ~ "orange",
+      status == "Meninggal" ~ "red",
+      TRUE ~ "grey"
+    ),
+    shape = case_when(
+      str_detect(relation, "Imported case") ~ "diamond",
+      TRUE ~ "square"
+    ),
+    # The hover text uses HTML formatting so <br> means break or new line
+    title = paste("Umur:", umur, "<br>", 
+                  "Lokasi:", rs, "<br>", 
+                  "Keterangan:", penularan),
+    value = time_since
+  ) %>% 
+  select(id, label, shape, color, title, value)
+```
+
+Now to take a glimpse on the cleaned data frame:
+
+```{r echo=FALSE}
+knitr::kable(cleaned_nodes %>% head())
+```
+
+Now all seems good, and the edges data frame also does not seems like in need of any wrangling and cleansing:
+
+```{r echo=FALSE}
+knitr::kable(edges %>% head())
+```
+
+## Graph Visualization
+
+Last is to just pass in our `nodes` and `edges` along with some configuration. For a complete documation for the API, please visit the [official documentation](https://datastorm-open.github.io/visNetwork/). The configuration I am using a simple tweak for aesthetic purposes and layouting for better view:
+
+```{r}
+visNetwork(cleaned_nodes, edges) %>% 
+   visNodes(shadow = list(enabled = TRUE, size = 10), 
+            font = list(size = 24)) %>% 
+  visHierarchicalLayout(direction = "LR", levelSeparation = 300)
+```
+
+Now try to play around with the visualization above. Note that you can scroll to zoom and h See if you can replicate the same (or different!) visualization by understanding how graph works!

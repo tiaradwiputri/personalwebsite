@@ -1,0 +1,494 @@
+---
+title: COVID-19 Transmission
+description: Virus outbreak transmission analysis based on graph visualization, using visNetwork package.
+author: ''
+date: '2020-03-24'
+slug: covid-19-transmission
+categories: []
+tags:
+  - portofolio
+  - dataplay
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<link href="/rmarkdown-libs/vis/vis.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/vis/vis.min.js"></script>
+<script src="/rmarkdown-libs/visNetwork-binding/visNetwork.js"></script>
+
+
+<div id="preface" class="section level1">
+<h1>Preface</h1>
+<p>This content is created for educational purposes, shout out to <a href="https://github.com/louislugas/">louislugas</a> from GitHub for the content inspiration. Check out <a href="https://louislugas.github.io/covid_19_cluster/index.html">his awesome web application</a> for COVID-19 transmission network analysis. This article will focus on breaking down building blocks in creating network analysis taking on the most recent COVID-19 pandemic outbreak in Indonesia. There are exponentially rising amount of suspects and patients on this matter and a strategic approach in containing the spread will be required in decision makings in this country. This article, will not tackle the policy-maker perspective, instead introducing the potentially useful tools for some parties.</p>
+</div>
+<div id="graph-theory" class="section level1">
+<h1>Graph Theory</h1>
+<p>The study of graph are introduced as mathematical structure used to model a certain relationships between entities. Graph is applicable in many areas and expertises, but a simple graph contain 2 main components:</p>
+<ul>
+<li>Nodes (or Vertices): Is the entity represented in a graph, in our case, the node will be COVID-19 patients recorded so far</li>
+<li>Edges: The edges, describe the relation between nodes</li>
+</ul>
+<p>To acquire the data, I will be using JSON provided by <a href="https://github.com/louislugas/">louislugas</a>, used also in his application:</p>
+<pre class="r"><code>json_cases &lt;- fromJSON(&quot;https://raw.githubusercontent.com/louislugas/louislugas.github.io/master/covid_19_cluster/json/kasus-corona-indonesia.json&quot;)
+cases_df &lt;- as.data.frame(json_cases$nodes) %&gt;% 
+  t() %&gt;% 
+  as.data.frame() %&gt;% 
+  glimpse()</code></pre>
+<pre><code>## Observations: 450
+## Variables: 16
+## $ id         &lt;fct&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 1...
+## $ kasus      &lt;fct&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 1...
+## $ provinsi   &lt;fct&gt; DKI Jakarta, DKI Jakarta, DKI Jakarta, DKI Jakarta, DKI ...
+## $ provinsiid &lt;fct&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 3, 1,...
+## $ umur       &lt;fct&gt; 31, 64, 33, 34, 55, 36, 54, 55, 55, 29, 54, 31, 16, 50, ...
+## $ umurtext   &lt;fct&gt; 31, 64, 33, 34, 55, 36, 54, 55, 55, 29, 54, 31, 16, 50, ...
+## $ gender     &lt;fct&gt; Perempuan, Perempuan, Perempuan, Perempuan, Laki-laki, L...
+## $ genderid   &lt;fct&gt; 1, 1, 1, 1, 2, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 1, 2, 2, 2,...
+## $ status     &lt;fct&gt; Sembuh, Sembuh, Sembuh, Dalam Perawatan, Dalam Perawatan...
+## $ statusid   &lt;fct&gt; 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2,...
+## $ wn         &lt;fct&gt; WNI, WNI, WNI, WNI, WNI, WNI, WNI, WNI, WNI, WNA, WNA, W...
+## $ wnid       &lt;fct&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1,...
+## $ pengumuman &lt;fct&gt; 2 Maret 2020, 2 Maret 2020, 6 Maret 2020, 6 Maret 2020, ...
+## $ penularan  &lt;fct&gt; &quot;Bertemu dengan WN Jepang yang dikonfirmasi positif di M...
+## $ rs         &lt;fct&gt; &quot;RSPI Sulianto Saroso, Jakarta&quot;, &quot;RSPI Sulianto Saroso, ...
+## $ rsid       &lt;fct&gt; 1, 1, 1, 1, 1, 2, 6, 6, 6, 1, 6, 6, 6, 2, 6, 6, 6, 6, 6,...</code></pre>
+<blockquote>
+<p>Note: JSON is an unstructure data types, while data frame is a set of variables (columns) with a given amount of observations (rows). Sometimes, JSON is not easily convertable to a tabular data type like data frame. Make sure you understand JSON’s data structure before making a table out of it.</p>
+</blockquote>
+<div id="the-nodes" class="section level2">
+<h2>The Nodes</h2>
+<p>Well, since most of them has an intuitive column name, we wouldn’t need a lot of exploration in understanding the data. The <code>penularan</code> column, however, seems to be a free-writing column that should be further inspected:</p>
+<pre class="r"><code>set.seed(10)
+cases_df %&gt;% 
+  select(penularan) %&gt;% 
+  sample_n(10)</code></pre>
+<pre><code>##          penularan
+## 1  Tidak diketahui
+## 2  Tidak diketahui
+## 3  Tidak diketahui
+## 4  Tidak diketahui
+## 5  Tidak diketahui
+## 6  Tidak diketahui
+## 7  Tidak diketahui
+## 8  Tidak diketahui
+## 9  Tidak diketahui
+## 10 Tidak diketahui</code></pre>
+<p>The <code>Tidak Diketahui</code> value seems to be really common, and might not be too useful to analyze if it holds no connection. So we’ll filter this out:</p>
+<pre class="r"><code>known_cases &lt;- cases_df %&gt;% 
+  filter(penularan != &quot;Tidak diketahui&quot;) %&gt;% 
+  glimpse()</code></pre>
+<pre><code>## Observations: 36
+## Variables: 16
+## $ id         &lt;fct&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 1...
+## $ kasus      &lt;fct&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 1...
+## $ provinsi   &lt;fct&gt; DKI Jakarta, DKI Jakarta, DKI Jakarta, DKI Jakarta, DKI ...
+## $ provinsiid &lt;fct&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 3, 1,...
+## $ umur       &lt;fct&gt; 31, 64, 33, 34, 55, 36, 54, 55, 55, 29, 54, 31, 16, 50, ...
+## $ umurtext   &lt;fct&gt; 31, 64, 33, 34, 55, 36, 54, 55, 55, 29, 54, 31, 16, 50, ...
+## $ gender     &lt;fct&gt; Perempuan, Perempuan, Perempuan, Perempuan, Laki-laki, L...
+## $ genderid   &lt;fct&gt; 1, 1, 1, 1, 2, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 1, 2, 2, 2,...
+## $ status     &lt;fct&gt; Sembuh, Sembuh, Sembuh, Dalam Perawatan, Dalam Perawatan...
+## $ statusid   &lt;fct&gt; 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2,...
+## $ wn         &lt;fct&gt; WNI, WNI, WNI, WNI, WNI, WNI, WNI, WNI, WNI, WNA, WNA, W...
+## $ wnid       &lt;fct&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1,...
+## $ pengumuman &lt;fct&gt; 2 Maret 2020, 2 Maret 2020, 6 Maret 2020, 6 Maret 2020, ...
+## $ penularan  &lt;fct&gt; &quot;Bertemu dengan WN Jepang yang dikonfirmasi positif di M...
+## $ rs         &lt;fct&gt; &quot;RSPI Sulianto Saroso, Jakarta&quot;, &quot;RSPI Sulianto Saroso, ...
+## $ rsid       &lt;fct&gt; 1, 1, 1, 1, 1, 2, 6, 6, 6, 1, 6, 6, 6, 2, 6, 6, 6, 6, 6,...</code></pre>
+<p>The cases is now down to 36 cases that might (or might not be) connected to each other. Let’s take a look at the <code>penularan</code> column once again:</p>
+<pre class="r"><code>set.seed(10)
+known_cases %&gt;% 
+  select(penularan) %&gt;% 
+  sample_n(10)</code></pre>
+<pre><code>##                                          penularan
+## 1                         Sehabis dari luar negeri
+## 2                        Terhubung dengan kasus #1
+## 3                        Terhubung dengan kasus #1
+## 4                                   Suami kasus #7
+## 5                         Sehabis dari luar negeri
+## 6  Sehabis dari Amerika Serikat, transit di Jepang
+## 7                            Sehabis dari Malaysia
+## 8                         Sehabis dari luar negeri
+## 9                         Sehabis dari luar negeri
+## 10                        Sehabis dari luar negeri</code></pre>
+<p>A bit of common pattern we’re seeing here:</p>
+<ul>
+<li>Relation with other case seems to be indetified using the <code>#&lt;a number&gt;</code> value</li>
+<li>The word <code>Sehabis</code> is a strong indicator of an imported case</li>
+</ul>
+<p>Now to create a case - when logic, we’ll be using <code>dplyr</code>’s <code>case_when()</code> to map each of the string pattern using regex:</p>
+<pre class="r"><code>relation_df &lt;- known_cases %&gt;% 
+  mutate(
+    relation = case_when(
+      str_detect(penularan, &quot;[0-9]+&quot;) ~ str_extract(penularan, &quot;#[0-9]+&quot;),
+      str_detect(penularan, &quot;Sehabis&quot;) ~ &quot;Imported case&quot;,
+    )
+  ) %&gt;% 
+  select(id, provinsi, umur, gender, pengumuman, penularan, status, wn, rs, relation)</code></pre>
+<p>Now glimpsing if there’s anything missed out from the given patterns:</p>
+<pre class="r"><code>relation_df %&gt;% 
+  filter(is.na(relation)) %&gt;% 
+  select(id, penularan)</code></pre>
+<pre><code>##   id
+## 1  6
+## 2 25
+## 3 26
+## 4 76
+##                                                                                                                                                                                                                                                          penularan
+## 1                                                                                                                                                                                                                      Diduga tertular dari kapal Diamond Princess
+## 2                                                                                                                                                                                                                                             WNA dari luar negeri
+## 3                                                                                                                                                                                                                                             WNA dari luar negeri
+## 4 1. 20 Februari atau lebih dari 3 minggu lalu ke kantor RM &lt;br&gt;2. 21 Feb Acara Abupi di Ritz Carlton Kuningan &lt;br&gt;3. 24 Feb Rapat dengan komisi V DPR RI &lt;br&gt;4. 26 Feb Acara dengan Kompas di Hotel Sultan. &lt;br&gt;5. 28-29 Feb kunjungan ke Luwu dan Toraja. &lt;br&gt;6.</code></pre>
+<p>So 3 more uncommon pattern:</p>
+<ul>
+<li>The Diamond Princess incident seems to be used as an identifier as well</li>
+<li><code>WNA</code> indicates a foreigner which will be assumed to be the same as <code>Imported Case</code></li>
+<li>A very long description that might (or might not have) explains the transmission, we’ll ignore that for now</li>
+</ul>
+<p>So rewriting our <code>relation_df</code> codes and adding a few informative information extraction from other columns:</p>
+<pre class="r"><code>nodes &lt;- known_cases %&gt;% 
+  mutate(
+    relation = case_when(
+      str_detect(penularan, &quot;[0-9]+&quot;) ~ str_extract(penularan, &quot;#[0-9]+&quot;),
+      str_detect(penularan, &quot;Sehabis&quot;) ~ &quot;Imported case&quot;,
+      str_detect(penularan, &quot;Diamond Princess&quot;) ~ &quot;Diamond Princess&quot;,
+      str_detect(penularan, &quot;WNA&quot;) ~ &quot;Imported case&quot;
+    ),
+    # coercing to date type for date calculation
+    pengumuman = dmy(pengumuman),
+    time_since = difftime(Sys.Date(), pengumuman, units = &quot;d&quot;)
+  ) %&gt;% 
+  select(id, pengumuman, provinsi, umur, status, wn, rs, relation, time_since, penularan)</code></pre>
+<p>Now there here goes our nodes data frame:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">id</th>
+<th align="left">pengumuman</th>
+<th align="left">provinsi</th>
+<th align="left">umur</th>
+<th align="left">status</th>
+<th align="left">wn</th>
+<th align="left">rs</th>
+<th align="left">relation</th>
+<th align="left">time_since</th>
+<th align="left">penularan</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="left">2020-03-02</td>
+<td align="left">DKI Jakarta</td>
+<td align="left">31</td>
+<td align="left">Sembuh</td>
+<td align="left">WNI</td>
+<td align="left">RSPI Sulianto Saroso, Jakarta</td>
+<td align="left">#24</td>
+<td align="left">22 days</td>
+<td align="left">Bertemu dengan WN Jepang yang dikonfirmasi positif di Malaysia (kasus #24)</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="left">2020-03-02</td>
+<td align="left">DKI Jakarta</td>
+<td align="left">64</td>
+<td align="left">Sembuh</td>
+<td align="left">WNI</td>
+<td align="left">RSPI Sulianto Saroso, Jakarta</td>
+<td align="left">#1</td>
+<td align="left">22 days</td>
+<td align="left">Terhubung dengan kasus #1 (Ibu kasus #1)</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="left">2020-03-06</td>
+<td align="left">DKI Jakarta</td>
+<td align="left">33</td>
+<td align="left">Sembuh</td>
+<td align="left">WNI</td>
+<td align="left">RSPI Sulianto Saroso, Jakarta</td>
+<td align="left">#1</td>
+<td align="left">18 days</td>
+<td align="left">Terhubung dengan kasus #1 di klub dansa</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="left">2020-03-06</td>
+<td align="left">DKI Jakarta</td>
+<td align="left">34</td>
+<td align="left">Dalam Perawatan</td>
+<td align="left">WNI</td>
+<td align="left">RSPI Sulianto Saroso, Jakarta</td>
+<td align="left">#1</td>
+<td align="left">18 days</td>
+<td align="left">Terhubung dengan kasus #1 di klub dansa</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="left">2020-03-08</td>
+<td align="left">DKI Jakarta</td>
+<td align="left">55</td>
+<td align="left">Dalam Perawatan</td>
+<td align="left">WNI</td>
+<td align="left">RSPI Sulianto Saroso, Jakarta</td>
+<td align="left">#1</td>
+<td align="left">16 days</td>
+<td align="left">Terhubung dengan kasus #1 di klub dansa</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="left">2020-03-08</td>
+<td align="left">DKI Jakarta</td>
+<td align="left">36</td>
+<td align="left">Sembuh</td>
+<td align="left">WNI</td>
+<td align="left">RS Persahabatan, Jakarta</td>
+<td align="left">Diamond Princess</td>
+<td align="left">16 days</td>
+<td align="left">Diduga tertular dari kapal Diamond Princess</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="the-edges" class="section level2">
+<h2>The Edges</h2>
+<p>To acquire each case’s connection, we’ll be simply extracting the information from our node since it has come with a handy identifier using <code>relation</code> and <code>id</code> columns. Starting from our <code>relation</code> column, we’ll be extracting only with those that have relation between cases, means those that has the <code>#&lt;a number&gt;</code> value in it:</p>
+<pre class="r"><code>edges &lt;- relation_df %&gt;% 
+  select(relation, id) %&gt;% 
+  mutate(
+    relation = str_extract(relation, &quot;[0-9]+&quot;),
+    relation = as.numeric(relation)
+  ) %&gt;% 
+  drop_na() %&gt;% 
+  rename(
+    from = relation,
+    to = id
+  )</code></pre>
+<p>And here goes our edges data frame:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="right">from</th>
+<th align="left">to</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td align="right">24</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td align="right">1</td>
+<td align="left">2</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td align="right">1</td>
+<td align="left">3</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td align="right">1</td>
+<td align="left">4</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td align="right">1</td>
+<td align="left">5</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td align="right">7</td>
+<td align="left">8</td>
+</tr>
+</tbody>
+</table>
+<p>Now before going any further, the first case seems to be showing a weird connection to the 24th case, if the timeline is correct, the first case shouldn’t be infected from the latter cases. Now let’s inspect the original dataset:</p>
+<pre class="r"><code>known_cases %&gt;% 
+  filter(id == 1) %&gt;% 
+  select(penularan)</code></pre>
+<pre><code>##                                                                    penularan
+## 1 Bertemu dengan WN Jepang yang dikonfirmasi positif di Malaysia (kasus #24)</code></pre>
+<p>The <code>penularan</code> column describes how it is related to <code>kasus #24</code>, things to note is, it took me some time to understand this anomaly, which I found to be really useful to just Google the things I find off. Then I came accross the <a href="https://www.cnnindonesia.com/internasional/20200229110333-106-479291/tiga-kasus-baru-corona-di-malaysia-satu-pernah-ke-indonesia">following article</a> that explains that the <code>kasus #24</code> is indicating to Malayasia’s case instead of Indonesia’s. Means, we can annull the first edges before going to visualization:</p>
+<pre class="r"><code>edges &lt;- edges[-1,]</code></pre>
+</div>
+</div>
+<div id="using-visnetwork" class="section level1">
+<h1>Using <code>visNetwork</code></h1>
+<p>There are indeed load of packages for graph visualization. For this exercise we’ll be using <code>visNetwork</code> and please note that I always encourage people to aim for understanding the working principles and ideas - not the idiosyncrasies. For the <code>visNetwork</code> to work, we’ll be needing some components:</p>
+<ul>
+<li><code>nodes</code> data frame that consist of:
+<ul>
+<li>Id</li>
+<li>The color</li>
+<li>Size</li>
+<li>Shape</li>
+<li>Label</li>
+<li>Hover text</li>
+</ul></li>
+<li><code>edges</code> data frame consisting of <code>to</code> and <code>from</code> that correspond to <code>id</code> column in <code>nodes</code></li>
+</ul>
+<p>Some things I want to configure based on the given set up is:</p>
+<ul>
+<li>The status of the patient will be color-coded</li>
+</ul>
+<pre class="r"><code>levels(nodes$status)</code></pre>
+<pre><code>## [1] &quot;Dalam Perawatan&quot; &quot;Meninggal&quot;       &quot;Sembuh&quot;          &quot;Tidak diketahui&quot;</code></pre>
+<ul>
+<li>The shape will be diamond if it is an imported case and square if not</li>
+<li>The size will be based on days passed since announcement</li>
+<li>The hover text will show: age, hospital location, and details</li>
+</ul>
+<p>Since we’ll be needing some value mapping, we’ll split it into 2 parts: data preparation and visualization</p>
+<div id="data-mapping" class="section level2">
+<h2>Data Mapping</h2>
+<p><code>visNetwork</code> uses column names to map each value to its designated component. Simply put:</p>
+<ul>
+<li>Use <code>id</code> for node’s ids</li>
+<li>Use <code>label</code> for node’s names</li>
+<li>Use <code>shape</code> for node’s shapes</li>
+<li>Use <code>color</code> for node’s colors</li>
+<li>Use <code>title</code> for node’s hover text</li>
+<li>Use <code>value</code> for node’s size</li>
+</ul>
+<pre class="r"><code>cleaned_nodes &lt;- nodes %&gt;% 
+  mutate(
+    label = paste0(&quot;Case #&quot;, id),
+    color = case_when(
+      status == &quot;Sembuh&quot; ~ &quot;green&quot;,
+      status == &quot;Dalam Perawatan&quot; ~ &quot;orange&quot;,
+      status == &quot;Meninggal&quot; ~ &quot;red&quot;,
+      TRUE ~ &quot;grey&quot;
+    ),
+    shape = case_when(
+      str_detect(relation, &quot;Imported case&quot;) ~ &quot;diamond&quot;,
+      TRUE ~ &quot;square&quot;
+    ),
+    # The hover text uses HTML formatting so &lt;br&gt; means break or new line
+    title = paste(&quot;Umur:&quot;, umur, &quot;&lt;br&gt;&quot;, 
+                  &quot;Lokasi:&quot;, rs, &quot;&lt;br&gt;&quot;, 
+                  &quot;Keterangan:&quot;, penularan),
+    value = time_since
+  ) %&gt;% 
+  select(id, label, shape, color, title, value)</code></pre>
+<p>Now to take a glimpse on the cleaned data frame:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">id</th>
+<th align="left">label</th>
+<th align="left">shape</th>
+<th align="left">color</th>
+<th align="left">title</th>
+<th align="left">value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="left">Case #1</td>
+<td align="left">square</td>
+<td align="left">green</td>
+<td align="left">Umur: 31 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Bertemu dengan WN Jepang yang dikonfirmasi positif di Malaysia (kasus #24)</td>
+<td align="left">22 days</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="left">Case #2</td>
+<td align="left">square</td>
+<td align="left">green</td>
+<td align="left">Umur: 64 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Terhubung dengan kasus #1 (Ibu kasus #1)</td>
+<td align="left">22 days</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="left">Case #3</td>
+<td align="left">square</td>
+<td align="left">green</td>
+<td align="left">Umur: 33 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Terhubung dengan kasus #1 di klub dansa</td>
+<td align="left">18 days</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="left">Case #4</td>
+<td align="left">square</td>
+<td align="left">orange</td>
+<td align="left">Umur: 34 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Terhubung dengan kasus #1 di klub dansa</td>
+<td align="left">18 days</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="left">Case #5</td>
+<td align="left">square</td>
+<td align="left">orange</td>
+<td align="left">Umur: 55 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Terhubung dengan kasus #1 di klub dansa</td>
+<td align="left">16 days</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="left">Case #6</td>
+<td align="left">square</td>
+<td align="left">green</td>
+<td align="left">Umur: 36 <br> Lokasi: RS Persahabatan, Jakarta <br> Keterangan: Diduga tertular dari kapal Diamond Princess</td>
+<td align="left">16 days</td>
+</tr>
+</tbody>
+</table>
+<p>Now all seems good, and the edges data frame also does not seems like in need of any wrangling and cleansing:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="right">from</th>
+<th align="left">to</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2</td>
+<td align="right">1</td>
+<td align="left">2</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td align="right">1</td>
+<td align="left">3</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td align="right">1</td>
+<td align="left">4</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td align="right">1</td>
+<td align="left">5</td>
+</tr>
+<tr class="odd">
+<td>8</td>
+<td align="right">7</td>
+<td align="left">8</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td align="right">1</td>
+<td align="left">10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="graph-visualization" class="section level2">
+<h2>Graph Visualization</h2>
+<p>Last is to just pass in our <code>nodes</code> and <code>edges</code> along with some configuration. For a complete documation for the API, please visit the <a href="https://datastorm-open.github.io/visNetwork/">official documentation</a>. The configuration I am using a simple tweak for aesthetic purposes and layouting for better view:</p>
+<pre class="r"><code>visNetwork(cleaned_nodes, edges) %&gt;% 
+   visNodes(shadow = list(enabled = TRUE, size = 10), 
+            font = list(size = 24)) %&gt;% 
+  visHierarchicalLayout(direction = &quot;LR&quot;, levelSeparation = 300)</code></pre>
+<div id="htmlwidget-1" style="width:672px;height:480px;" class="visNetwork html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"nodes":{"id":["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","53","76"],"label":["Case #1","Case #2","Case #3","Case #4","Case #5","Case #6","Case #7","Case #8","Case #9","Case #10","Case #11","Case #12","Case #13","Case #14","Case #15","Case #16","Case #17","Case #18","Case #19","Case #20","Case #21","Case #22","Case #23","Case #24","Case #25","Case #26","Case #27","Case #28","Case #29","Case #30","Case #31","Case #32","Case #33","Case #34","Case #53","Case #76"],"shape":["square","square","square","square","square","square","diamond","square","diamond","square","square","square","square","diamond","diamond","square","diamond","diamond","diamond","square","square","diamond","diamond","diamond","diamond","diamond","square","diamond","diamond","diamond","diamond","diamond","diamond","diamond","square","square"],"color":["green","green","green","orange","orange","green","green","green","green","orange","orange","orange","green","orange","orange","orange","orange","orange","orange","orange","orange","orange","orange","orange","red","orange","orange","orange","orange","orange","orange","orange","orange","orange","orange","orange"],"title":["Umur: 31 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Bertemu dengan WN Jepang yang dikonfirmasi positif di Malaysia (kasus #24)","Umur: 64 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Terhubung dengan kasus #1 (Ibu kasus #1)","Umur: 33 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Terhubung dengan kasus #1 di klub dansa","Umur: 34 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Terhubung dengan kasus #1 di klub dansa","Umur: 55 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Terhubung dengan kasus #1 di klub dansa","Umur: 36 <br> Lokasi: RS Persahabatan, Jakarta <br> Keterangan: Diduga tertular dari kapal Diamond Princess","Umur: 54 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari Amerika Serikat, transit di Jepang","Umur: 55 <br> Lokasi: Tidak diketahui <br> Keterangan: Suami kasus #7","Umur: 55 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari luar negeri","Umur: 29 <br> Lokasi: RSPI Sulianto Saroso, Jakarta <br> Keterangan: Terhubung dengan kasus #1","Umur: 54 <br> Lokasi: Tidak diketahui <br> Keterangan: Terhubung dengan kasus #1","Umur: 31 <br> Lokasi: Tidak diketahui <br> Keterangan: Terhubung dengan kasus #1","Umur: 16 <br> Lokasi: Tidak diketahui <br> Keterangan: Subklaster kasus #3","Umur: 50 <br> Lokasi: RS Persahabatan, Jakarta <br> Keterangan: Sehabis dari Malaysia","Umur: 43 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari luar negeri","Umur: 17 <br> Lokasi: Tidak diketahui <br> Keterangan: Terhubung dengan kasus #15","Umur: 56 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari Malaysia","Umur: 55 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari Malaysia","Umur: 40 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari Malaysia","Umur: 70 <br> Lokasi: RS Persahabatan, Jakarta <br> Keterangan: Subklaster kasus #1","Umur: 47 <br> Lokasi: Tidak diketahui <br> Keterangan: Subklaster kasus #1","Umur: 36 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari luar negeri","Umur: 73 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari luar negeri","Umur: 46 <br> Lokasi: RS Persahabatan, Jakarta <br> Keterangan: Sehabis dari luar negeri","Umur: 53 <br> Lokasi: RS Sanglah, Bali <br> Keterangan: WNA dari luar negeri","Umur: 46 <br> Lokasi: Tidak diketahui <br> Keterangan: WNA dari luar negeri","Umur: 33 <br> Lokasi: Tidak diketahui <br> Keterangan: Subklaster kasus #20","Umur: 37 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari luar negeri","Umur: 51 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari luar negeri","Umur: 85 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari luar negeri","Umur: 48 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari luar negeri","Umur: 45 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari Singapura","Umur: 29 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari luar negeri","Umur: 52 <br> Lokasi: Tidak diketahui <br> Keterangan: Sehabis dari luar negeri","Umur: 24 <br> Lokasi: Tidak diketahui <br> Keterangan: Terhubung dengan kasus #22","Umur: 64 <br> Lokasi: RSPAD Gatot Subroto, Jakarta <br> Keterangan: 1. 20 Februari atau lebih dari 3 minggu lalu ke kantor RM <br>2. 21 Feb Acara Abupi di Ritz Carlton Kuningan <br>3. 24 Feb Rapat dengan komisi V DPR RI <br>4. 26 Feb Acara dengan Kompas di Hotel Sultan. <br>5. 28-29 Feb kunjungan ke Luwu dan Toraja. <br>6."],"value":[22,22,18,18,16,16,15,15,15,15,15,15,15,15,15,15,15,15,15,14,14,14,14,14,14,14,14,13,13,13,13,13,13,13,11,10]},"edges":{"from":[1,1,1,1,7,1,1,1,3,15,1,1,20,22],"to":["2","3","4","5","8","10","11","12","13","16","20","21","27","53"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot","font":{"size":24},"shadow":{"enabled":true,"size":10}},"manipulation":{"enabled":false},"layout":{"hierarchical":{"enabled":true,"levelSeparation":300,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)"},"evals":[],"jsHooks":[]}</script>
+<p>Now try to play around with the visualization above. Note that you can scroll to zoom and h See if you can replicate the same (or different!) visualization by understanding how graph works!</p>
+</div>
+</div>
