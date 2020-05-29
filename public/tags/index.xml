@@ -7,10 +7,19 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© Copyright notice</copyright>
-    <lastBuildDate>Tue, 24 Mar 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 29 May 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>scribble</title>
+      <link>/tags/scribble/</link>
+      <pubDate>Fri, 29 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/scribble/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>dataplay</title>
@@ -27,15 +36,6 @@
       <pubDate>Tue, 24 Mar 2020 00:00:00 +0000</pubDate>
       
       <guid>/tags/portofolio/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>scribble</title>
-      <link>/tags/scribble/</link>
-      <pubDate>Sun, 08 Dec 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/scribble/</guid>
       <description></description>
     </item>
     

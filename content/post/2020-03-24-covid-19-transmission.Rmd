@@ -1,6 +1,6 @@
 ---
 title: COVID-19 Transmission
-description: Virus outbreak transmission analysis based on graph visualization, using visNetwork package.
+description: Virus outbreak transmission analysis based on graph visualization, using visNetwork package
 author: ''
 date: '2020-03-24'
 slug: covid-19-transmission
